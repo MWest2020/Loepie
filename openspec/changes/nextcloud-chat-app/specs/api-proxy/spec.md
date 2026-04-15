@@ -85,6 +85,29 @@ The backend SHALL forward Anthropic API errors to the frontend with appropriate 
 - **WHEN** the Anthropic API returns 403 (e.g., plan does not support API access)
 - **THEN** the backend SHALL return an error explaining the user's Claude plan may not support this feature
 
+### Requirement: Audit logging
+The backend SHALL log all security-relevant events to the Nextcloud log. Logs SHALL include the Nextcloud user ID, timestamp, and event type. Logs SHALL NOT contain message content, file contents, or token values.
+
+#### Scenario: API request logged
+- **WHEN** a user sends a chat request through the proxy
+- **THEN** the backend SHALL log: user ID, timestamp, number of attached files, and response status code
+
+#### Scenario: OAuth grant event logged
+- **WHEN** a user connects or disconnects their Claude account
+- **THEN** the backend SHALL log: user ID, timestamp, and event type (grant/revoke)
+
+#### Scenario: Token refresh logged
+- **WHEN** a token refresh occurs (success or failure)
+- **THEN** the backend SHALL log: user ID, timestamp, and result (success/failure/expired)
+
+#### Scenario: Admin revocation logged
+- **WHEN** an admin revokes a user's tokens
+- **THEN** the backend SHALL log: admin user ID, target user ID, timestamp, and scope (single/all)
+
+#### Scenario: Suspicious pattern detected
+- **WHEN** a single user makes more than 100 API requests within 10 minutes
+- **THEN** the backend SHALL log a warning with the user ID and request count
+
 ### Requirement: Request validation
 The backend SHALL validate incoming requests: message text must not be empty, attached file IDs must be valid Nextcloud file references, and the user must be authenticated in both Nextcloud and with Anthropic.
 

@@ -54,6 +54,43 @@ Each user SHALL authenticate with their own Claude.ai account via OAuth2 Authori
 - **WHEN** both the access token and refresh token are invalid
 - **THEN** the app SHALL prompt the user to re-authenticate with "Connect your Claude account"
 
+### Requirement: OAuth CSRF protection
+The OAuth authorization request SHALL include a cryptographically random `state` parameter bound to the user's Nextcloud session. The callback handler SHALL reject any response where the `state` does not match.
+
+#### Scenario: Valid OAuth callback
+- **WHEN** Anthropic redirects back with a `state` parameter matching the user's session
+- **THEN** the backend SHALL proceed with the token exchange
+
+#### Scenario: Missing or mismatched state
+- **WHEN** the callback `state` does not match the stored value or is absent
+- **THEN** the backend SHALL reject the callback and log the event as a potential CSRF attempt
+
+### Requirement: Refresh token rotation
+Each time a refresh token is used to obtain a new access token, the backend SHALL also obtain a new refresh token and invalidate the old one. If Anthropic does not support rotation, the backend SHALL enforce a maximum refresh token lifetime.
+
+#### Scenario: Token refresh with rotation
+- **WHEN** the backend uses a refresh token to get a new access token
+- **THEN** the new refresh token SHALL replace the old one, and the old refresh token SHALL be invalidated
+
+#### Scenario: Maximum refresh token lifetime exceeded
+- **WHEN** a refresh token has been in use for longer than the admin-configured maximum lifetime (default: 30 days)
+- **THEN** the backend SHALL reject the refresh token and prompt the user to re-authenticate
+
+### Requirement: Token-session binding
+OAuth tokens SHALL be invalidated when the user's Nextcloud account is disabled, deleted, or the user's password is changed.
+
+#### Scenario: Admin disables a user account
+- **WHEN** a Nextcloud admin disables a user account that has stored Anthropic OAuth tokens
+- **THEN** the stored tokens SHALL be deleted
+
+#### Scenario: User changes password
+- **WHEN** a user changes their Nextcloud password
+- **THEN** the stored Anthropic OAuth tokens SHALL be deleted and the user SHALL need to reconnect their Claude account
+
+#### Scenario: User account deleted
+- **WHEN** a Nextcloud user account is deleted
+- **THEN** all associated Anthropic OAuth tokens SHALL be deleted from the database
+
 ### Requirement: User disconnect
 The application SHALL allow users to disconnect their Claude account from their personal settings.
 
@@ -61,12 +98,27 @@ The application SHALL allow users to disconnect their Claude account from their 
 - **WHEN** the user clicks "Disconnect Claude account" in their personal settings
 - **THEN** the stored tokens SHALL be deleted and the user SHALL see the "Connect your Claude account" button on next visit
 
+### Requirement: Admin token management
+The admin settings page SHALL display an overview of all users with active Anthropic OAuth grants and allow the admin to force-revoke tokens for individual users or all users.
+
+#### Scenario: Admin views active grants
+- **WHEN** the admin opens the Lupé admin settings page
+- **THEN** a list of users with active Anthropic OAuth tokens SHALL be displayed, including the grant date and last usage date
+
+#### Scenario: Admin revokes a user's token
+- **WHEN** the admin clicks "Revoke" next to a user
+- **THEN** that user's stored tokens SHALL be deleted and the user SHALL need to reconnect on next visit
+
+#### Scenario: Admin revokes all tokens
+- **WHEN** the admin clicks "Revoke all tokens"
+- **THEN** all stored Anthropic OAuth tokens SHALL be deleted for all users
+
 ### Requirement: Navigation entry
 The application SHALL add a navigation entry to the Nextcloud top bar so users can access it as a regular Nextcloud app.
 
 #### Scenario: User navigates to the app
-- **WHEN** a logged-in user with access clicks the Loepie navigation entry
-- **THEN** the Loepie chat interface SHALL load within the Nextcloud frame (header, sidebar intact)
+- **WHEN** a logged-in user with access clicks the Lupé navigation entry
+- **THEN** the Lupé chat interface SHALL load within the Nextcloud frame (header, sidebar intact)
 
 ### Requirement: Nextcloud file picker integration
 The application SHALL use the Nextcloud file picker (`@nextcloud/dialogs` OC.dialogs.filepicker or the Vue FilePicker component) to let users select files from their Nextcloud storage.
