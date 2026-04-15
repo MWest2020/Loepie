@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-04-15
+
+### Added
+- OpenSpec change `nextcloud-chat-app` with specs for Nextcloud app with per-user Claude OAuth
+  - `nextcloud-integration`: app registration, admin OAuth config, file picker, per-user OAuth flow
+  - `api-proxy`: server-side proxy with user OAuth tokens, streaming, token refresh
+  - `chat-interface`: chat UI within Nextcloud frame, Claude account connection state
+  - `file-handling`: server-side parsing of txt, csv, docx, xlsx, xls, pdf
+  - `excel-export`: xlsx JSON detection, generation, download + save to Nextcloud
+
+### Archived
+- OpenSpec change `sso-portal` (superseded by nextcloud-chat-app approach)
+
+### Removed
+- OpenSpec change `single-file-chat-app` (archived; replaced by nextcloud-chat-app)
+
 ## 2026-04-14
 
 ### Added
