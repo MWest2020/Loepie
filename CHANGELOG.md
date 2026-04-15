@@ -19,7 +19,7 @@
 ## 2026-04-14
 
 ### Added
-- `loepie.html` — single-file HTML chat application for document analysis with Claude
+- `loepie.html` — single-file HTML prototype for document analysis with Claude (pre-Lupé)
   - API key management with localStorage persistence
   - Drag-and-drop file handling: .txt, .csv, .docx (mammoth.js), .xlsx/.xls (SheetJS), .pdf (base64)
   - Streaming chat with full conversation history
